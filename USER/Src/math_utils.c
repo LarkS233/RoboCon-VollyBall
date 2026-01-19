@@ -43,3 +43,14 @@ int abs_int(int num) {
 float abs_float(float value) {
     return (value < 0.0f) ? -value : value;
 }
+
+// 新增：应用死区（将小范围值映射到0）
+float apply_deadzone(float value, float deadzone)
+{
+    if(abs_float(value) < deadzone)
+    {
+        return 0.0f;
+    }
+    // 超出死区范围，直接返回原始值
+    return value;
+}

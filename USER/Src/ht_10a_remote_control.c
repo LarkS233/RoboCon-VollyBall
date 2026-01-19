@@ -5,7 +5,7 @@
 extern UART_HandleTypeDef huart1;
 extern DMA_HandleTypeDef hdma_usart1_rx;
 
-uint8_t   sbus_buffer[25];//SBUS协议数据缓存25bit
+uint8_t   sbus_buffer[SBUS_BUFLEN];//SBUS协议数据缓存25bit
 
 static void sbus_to_remote_control(volatile const uint8_t *sbus_buffer, SBUS_ctrl_t *sbus_ctrl);
 
@@ -110,9 +110,16 @@ static void sbus_to_remote_control(volatile const uint8_t *sbus_buffer, SBUS_ctr
         sbus_ctrl -> ch[6] = ((sbus_buffer[9] >> 2 )| (sbus_buffer[10] << 6 )) & 0x07ff;//SWC
         sbus_ctrl -> ch[7] = ((sbus_buffer[10] >> 5 )| (sbus_buffer[11] << 3 )) & 0x07ff;//SWD
 
+        //归一化
         car_x=normalize_to_range(sbus_ctrl -> ch[1], 1000.0f, 2000.0f, -MAX_CAR_SPEED, MAX_CAR_SPEED);
         car_y=-normalize_to_range(sbus_ctrl -> ch[0], 1000.0f, 2000.0f, -MAX_CAR_SPEED, MAX_CAR_SPEED);
         car_w=-normalize_to_range(sbus_ctrl -> ch[3], 1000.0f, 2000.0f, -MAX_CAR_SPEED, MAX_CAR_SPEED);
+        
+        //应用死区处理
+        car_x=apply_deadzone(car_x, DEADZONE);
+        car_y=apply_deadzone(car_y, DEADZONE);
+        car_w=apply_deadzone(car_w, DEADZONE);
+
         MecanumWheel_Move(car_x,car_y,car_w);
     }
 
